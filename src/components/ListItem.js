@@ -1,17 +1,63 @@
 import React, { Component } from 'react';
-import { Text } from 'react-native';
+import { 
+    Text, 
+    TouchableWithoutFeedback, 
+    View,  
+    NativeModules,
+    LayoutAnimation
+} from 'react-native';
+
+const { UIManager } = NativeModules
+UIManager.setLayoutAnimationEnabledExperimental
+    && UIManager.setLayoutAnimationEnabledExperimental(true);
+
+import { connect } from 'react-redux';
 import { CardSection } from './common';
+import * as actions from '../actions';
 
 class ListItem extends Component{
+
+    componentWillUpdate() {
+        LayoutAnimation.spring();
+    }
+
+    renderDescription() {
+        const { library, expanded } = this.props;
+
+        if (expanded){
+            return (
+                <CardSection>
+                    <Text style={{ 
+                        flex:1,
+                        paddingLeft: 15,
+                        paddingRight: 15, 
+                        paddingTop: 10,
+                        paddingBottom: 10,
+                    }}>
+                        {library.description}
+                    </Text>
+                </CardSection>
+            );
+        }
+    }
+
     render() {
         const { titleStyle } = styles;
+        const { id, title } = this.props.library;
 
         return (
-            <CardSection>
-                <Text style={ titleStyle }>
-                    { this.props.library.title}
-                </Text>
-            </CardSection>
+            <TouchableWithoutFeedback
+                onPress={() => this.props.selectLibrary(id)}
+            >
+                <View>
+                    <CardSection>
+                        <Text style={ titleStyle }>
+                            { title}
+                        </Text>
+                    </CardSection>
+                    {this.renderDescription()}
+                </View>
+            </TouchableWithoutFeedback>
         );
     }
 }
@@ -19,8 +65,16 @@ class ListItem extends Component{
 const styles = {
     titleStyle: {
         fontSize: 18,
-        paddingLeft: 15
+        paddingLeft: 15,
+        paddingTop: 10,
+        paddingBottom: 10
     }
 }
 
-export default ListItem;
+const mapStateToProps = (state, ownProps) => {
+    const expanded = state.selectedLibraryId === ownProps.library.id;
+
+    return { expanded };
+}
+
+export default connect(mapStateToProps, actions)(ListItem);
